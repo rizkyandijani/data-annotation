@@ -1,0 +1,5 @@
+ultralytics>=8.2
+opencv-python-headless
+streamlit
+cvat-sdk
+pyyaml

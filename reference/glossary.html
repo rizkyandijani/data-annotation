@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Glossary — Vision Annotation</title>
+<link rel="stylesheet" href="../assets/style.css"></head>
+<body><div class="topnav"><a href="../MISSION.md">mission</a> · reference / glossary</div>
+<main>
+<h1>Glossary</h1>
+<p class="small">Rule for this glossary: every entry gives <b>Stands for → Why called that → Why used</b>, even for “common” words. Compressed definitions. Lessons link here.</p>
+<dl>
+<dt><b>PPE — Personal Protective Equipment</b></dt><dd><b>Stands for:</b> gear worn to prevent injury: helmets (hard hats), high-vis vests, gloves, boots, goggles. <b>Why called that:</b> legal/safety term — “equipment” that “protects” the “person”. <b>Why used here:</b> our demo domain is construction-site safety: detect if workers wear helmet + vest. Concrete, visual, meaningful.</dd>
+<dt><b>Ontology</b></dt><dd><b>Stands for:</b> from philosophy, what exists. <b>Why called that:</b> you declare what exists in your world. <b>Why used:</b> fixed classes + attributes stop label sprawl (“hardhat” vs “helmet”).</dd>
+<dt><b>Annotation guideline</b></dt><dd><b>Stands for:</b> rules + pictures for edge cases. <b>Why used:</b> resolves occlusion, truncation, tiny boxes, tightness before they kill agreement.</dd>
+<dt><b>Bounding box (bbox)</b></dt><dd><b>Stands for:</b> <code>[x_min, y_min, width, height]</code> in pixels (COCO style). <b>Why called that:</b> bounds the object. <b>Why used:</b> tight = touches outermost pixels; “tight” matters because loose air drops IoU.</dd>
+<dt><b>IoU — Intersection over Union</b></dt><dd><b>Stands for:</b> Intersection (overlap area, the AND) over Union (total area covered by both, the OR). Borrowed from set theory / Venn diagrams, also called Jaccard index.<br><b>Why called that:</b> literally Intersection ÷ Union. <b>Why used:</b> single 0-to-1 score that punishes shifted, too-big, and too-small boxes equally, independent of object size. &gt;0.5 match, &gt;0.75 good.</dd>
+<dt><b>COCO — Common Objects in Context</b></dt><dd><b>Stands for:</b> dataset + JSON with <code>images, annotations, categories</code>. <b>Why called that:</b> objects photographed in everyday context. <b>Why used:</b> lingua franca CVAT exports, training reads.</dd>
+<dt><b>CVAT — Computer Vision Annotation Tool / Project / Task / Job</b></dt><dd><b>Stands for:</b> Intel/OpenCV labeling tool. Project = ontology + tasks. Task = data chunk. Job = annotator slice. <b>Why used:</b> splits work, handles images + video tracks.</dd>
+<dt><b>YOLO — You Only Look Once</b></dt><dd><b>Stands for:</b> detector that predicts all boxes in one pass (not sliding windows). <b>Why called that:</b> single forward pass. <b>Why used:</b> fast, CPU-friendly (nano = 6M params), ideal for local pre-labeling.</dd>
+<dt><b>Track / tracklet</b></dt><dd><b>Stands for:</b> same object ID across video frames. <b>Why called that:</b> you “track” it through time. <b>Why used:</b> video needs identity, not just per-frame boxes; CVAT interpolates between keyframes.</dd>
+<dt><b>ID switch</b></dt><dd><b>Stands for:</b> tracker swaps IDs between two people. <b>Why used:</b> core video error metric — counts identity breaks.</dd>
+<dt><b>Inter-annotator agreement</b></dt><dd><b>Stands for:</b> mean IoU + class agreement between two labelers. <b>Why used:</b> &lt;0.7 mean IoU = fix guidelines, don’t blame people.</dd>
+<dt><b>Transfer learning</b></dt><dd><b>Stands for:</b> start from <code>yolov8n.pt</code> pre-trained on COCO, fine-tune on yours. <b>Why called that:</b> transfers general vision knowledge. <b>Why used:</b> 300 images enough because model already knows edges, people.</dd>
+<dt><b>Pre-label / model-in-the-loop</b></dt><dd><b>Stands for:</b> model drafts, human corrects in same UI. <b>Why used:</b> cuts time/img; measure correction % to know if helping.</dd>
+<dt><b>mAP — mean Average Precision (mAP50 = at IoU≥0.5)</b></dt><dd><b>Stands for:</b> mean (averaged over classes) Average Precision (area under the precision-recall curve per class). Precision = correct predictions ÷ all predictions; Recall = found objects ÷ all real objects.<br><b>Why called that:</b> AP summarizes the precision-vs-recall tradeoff into one number per class, then mean averages across classes so rare classes count equally.<br><b>Why used:</b> one report-card number to compare detectors. Different from human IoU agreement — model grade vs human agreement.</dd>
+</dl>
+<p class="small">Sources: <a href="https://opencv.github.io/cvat/docs/">CVAT docs</a>, <a href="https://cocodataset.org/#home">COCO</a>, <a href="https://docs.ultralytics.com/">Ultralytics</a></p>
+</main></body></html>

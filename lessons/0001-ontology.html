@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0001 Ontology — Your First Tightly-Scoped Win</title>
+<link rel="stylesheet" href="../assets/style.css"></head>
+<body><div class="topnav">lesson 0001 · <a href="../reference/glossary.html">glossary</a> · <a href="../MISSION.md">mission</a></div>
+<main>
+<h1>0001: Define a 3-class ontology that survives edge cases</h1>
+<p><b>Win:</b> in 20 minutes you will write an ontology for PPE — <b>PPE stands for Personal Protective Equipment</b> (helmets, vests, boots — gear that protects the person; called that in safety law) — that answers 5 nasty edge cases. This is the #1 hiring signal in annotation.</p>
+
+<div class="card"><b>Knowledge (5 min): jargon first</b><br>• <b>Ontology — stands for:</b> from philosophy, study of “what exists”. In annotation: fixed list of what you’re allowed to label. <b>Why called that:</b> you declare what exists in your world. <b>Why used:</b> stops everyone inventing labels (“hardhat” vs “helmet”).<br>• <b>Attribute — stands for:</b> extra flag on a label, e.g. <code>occluded=yes</code>. <b>Why called that:</b> Latin “attribuere”, something assigned to a thing. <b>Why used:</b> keep class list small (3 classes) but still record nuance.<br>• <b>Guideline — stands for:</b> written rules + pictures for edge cases. <b>Why called that:</b> guides judgment where rules are fuzzy. <b>Why used:</b> if two reasonable people disagree, your guideline is broken, not the people. Every vague class costs ~10% agreement.<br>• <b>Edge case — stands for:</b> rare but real situation at the “edge” of your rules (helmet in hand, reflection). <b>Why used:</b> models fail on edges, so you must decide them upfront.<br>See <a href="https://opencv.github.io/cvat/docs/manual/advanced/projects/">CVAT Projects: labels</a>.</div>
+
+<h2>Your ontology (copy to annotation-guidelines.md)</h2>
+<pre>person | helmet | safety-vest
+attributes: occluded=[yes/no], truncated=[yes/no]</pre>
+
+<h2>Decide these 5 now (write 1 line each)</h2>
+<div class="task"><b>1.</b> Helmet in hand vs on head? → Only on-head counts. Why: downstream safety model cares about worn.</div>
+<div class="task"><b>2.</b> Person &lt; 30px tall (“px” = pixels, tiny dots)? → Skip. <b>Why:</b> too few pixels = noise, hurts model grade (mAP — mean Average Precision, see 0000 §5).</div>
+<div class="task"><b>3.</b> Vest half-visible behind pillar? → Label if &gt;50% visible, mark occluded=yes.</div>
+<div class="task"><b>4.</b> Box tightness (“tight” = touches outermost visible pixels, no air margin)? → Touch outermost visible pixels. Loose boxes drop IoU (Intersection over Union, overlap ÷ total, see 0000 §4) by ~0.15.</div>
+<div class="task"><b>5.</b> Reflection of person in window? → Never label reflections.</div>
+
+<h2>Quiz — retrieval practice</h2>
+<div class="quiz" id="q1">
+<p><b>Q1: A worker holds a helmet. You:</b></p>
+<button data-c="w">A: Label helmet, it is visible clearly here</button>
+<button data-c="c">B: Skip helmet, only worn helmets count now</button>
+<button data-c="w">C: Label person only, ignore helmet entirely</button>
+<p class="feedback" id="f1"></p>
+</div>
+<div class="quiz" id="q2">
+<p><b>Q2: Two annotators get mean IoU 0.55. First fix?</b></p>
+<button data-c="c">A: Tighten guideline with visual examples now</button>
+<button data-c="w">B: Train model longer for better accuracy</button>
+<button data-c="w">C: Add more classes to the ontology set</button>
+<p class="feedback" id="f2"></p>
+</div>
+
+<h2>Do this now (10 min)</h2>
+<div class="task">1. Open <code>annotation-guidelines.md</code> in this folder.<br>2. Paste your 3 classes + your 5 decisions.<br>3. Find 1 image per edge case (use <a href="https://universe.roboflow.com/">Roboflow Universe</a> search "construction helmet") and save links under <code>data/raw/README.md</code>.</div>
+
+<p class="small">Primary source: <a href="https://opencv.github.io/cvat/docs/manual/advanced/projects/">CVAT labels docs</a>. Ask the agent anything unclear — e.g. "is my vest rule too vague?"</p>
+<nav class="lesson-nav"><a href="0000-visual-basics.html">← Prev: 0000 Basics</a><a href="0002-first-10-boxes-cvat.html">Next: 0002 CVAT →</a></nav>
+</main>
+<script>
+document.querySelectorAll('.quiz').forEach(q=>{
+  const fb=q.querySelector('.feedback');
+  q.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const ok=b.dataset.c==='c';
+    q.querySelectorAll('button').forEach(x=>x.classList.remove('correct','wrong'));
+    b.classList.add(ok?'correct':'wrong');
+    fb.textContent=ok?'Correct — guidelines first, model later.':'Not quite — re-read the 5 decisions above.';
+  });
+});
+</script>
+</body></html>

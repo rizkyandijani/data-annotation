@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0000 See Like a Model — Boxes, Hidden, Cut, Overlap</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.box-demo{position:relative;width:280px;height:180px;background:#e8e2d5;border:2px solid #999;margin:.5rem 0;}
+.bbox{position:absolute;border:3px solid #0b6e4f;background:rgba(11,110,79,.12);}
+.person{left:40px;top:20px;width:80px;height:140px;}
+.person::after{content:'person';position:absolute;top:-24px;left:0;background:#0b6e4f;color:#fff;font:12px monospace;padding:2px 6px;border-radius:4px;}
+.pillar{position:absolute;left:90px;top:0;width:40px;height:180px;background:#9a8f7d;opacity:.9;}
+.edge{position:absolute;right:-30px;top:40px;width:80px;height:100px;border:3px dashed #b3261e;background:rgba(179,38,30,.1);}
+.iou-a,.iou-b{position:absolute;width:120px;height:120px;opacity:.6;}
+.iou-a{left:30px;top:20px;background:#4a90d9;border:3px solid #2c5f8a;}
+.iou-b{left:80px;top:50px;background:#f5a623;border:3px solid #9a6510;}
+</style>
+</head>
+<body><div class="topnav">lesson 0000 · true start · <a href="../reference/glossary.html">glossary</a> · <a href="../MISSION.md">mission</a></div>
+<main>
+<h1>0000: See like a model (no math yet)</h1>
+<p><b>Win:</b> in 15 minutes you can point at any photo and say "that's a box, that's hidden, that's cut, that's good overlap". That's all lesson 0001 assumed. We use PPE photos throughout — <b>PPE = Personal Protective Equipment</b> (helmets, safety vests).</p>
+
+<h2>1. A box = sticky note around the thing</h2>
+<p>Think <code>getBoundingClientRect()</code> — smallest rectangle that hugs the visible pixels. No margin, no guessing hidden parts.</p>
+<div class="box-demo"><div class="bbox person"></div></div>
+<p class="small">Tight = touches head top, feet bottom, shoulders sides. Loose = adds air → model learns air = bad.</p>
+
+<h2>2. Occluded = hidden behind something</h2>
+<p>Person behind a pillar. You still see half of them, so you still label — but mark <code>occluded=yes</code>.</p>
+<div class="box-demo"><div class="bbox person"></div><div class="pillar"></div></div>
+<p>Analogy: <code>overflow:hidden</code> — element exists, part is covered. Rule we use later: if you see &gt;50%, label it.</p>
+
+<h2>3. Truncated = cut by photo edge</h2>
+<p>Person walks half out of frame. Box only covers what's <i>in</i> the photo, mark <code>truncated=yes</code>.</p>
+<div class="box-demo"><div class="edge"></div><p style="padding:70px 20px">← photo ends here</p></div>
+<p>Analogy: viewport clipping — you don't draw outside the screen.</p>
+
+<h2>4. IoU — Intersection over Union</h2>
+<p><b>Stands for: Intersection</b> (overlap, the AND — pixels in <i>both</i> boxes) <b>over Union</b> (total, the OR — pixels in <i>at least one</i> box). Same idea as <code>Set.intersection / Set.union</code> in code. Also called Jaccard index.</p>
+<p><b>Why called that:</b> because you literally compute <code>intersection ÷ union</code>. Two people draw a box around the same helmet — how similar? Overlap ÷ total area.</p>
+<div class="box-demo"><div class="iou-a"></div><div class="iou-b"></div></div>
+<ul>
+<li><b>Almost same box → IoU ~0.85</b> → great, you agree.</li>
+<li><b>Half overlapping → IoU ~0.4</b> → someone was loose.</li>
+<li><b>Barely touching → IoU ~0.1</b> → different objects.</li>
+</ul>
+<div class="card"><b>Why we use it (not pixel distance):</b> 20px error is huge for a helmet, nothing for a truck. IoU is always 0-to-1, independent of size, and punishes shifted + too-big + too-small in one number. That's why it decides both “do annotators agree?” and later “does a model prediction count as correct?”.<br><span class="small">Worked example: two 10×10 boxes overlapping 5×5 → 25 ÷ 175 ≈ 0.14 → no match.<br>• Intersection = 5×5 = <b>25</b> (only the overlap).<br>• Union = 100 + 100 − 25 = <b>175</b>. Why −25? You counted the overlap twice (once inside each 100), so subtract one copy. Not 100 (that's just one box), not 200 (that double-counts overlap), not 150. Union = everything covered by <i>at least one</i> box.<br>Code: <code>src/metrics.py</code>. Rule: <b>&gt;0.7 = friends, &lt;0.5 = fix guidelines</b>.</span></div>
+
+<h2>5. mAP — mean Average Precision (mAP50 = at IoU ≥ 0.5)</h2>
+<p><b>Stands for, inside-out:</b><br>• <b>Precision</b> = correct predictions ÷ all predictions (“when it shouts helmet, how often right?”). <b>Recall</b> = found objects ÷ all real objects (“of all real helmets, how many found?”).<br>• <b>Average Precision (AP)</b> = average of precision across recall levels — area under the precision-recall curve, one number per class. Needed because you can cheat with thresholds.<br>• <b>mean</b> = average AP across classes, so <code>person</code> (1000x) doesn’t drown <code>helmet</code> (50x).<br>• <b>50</b> = a prediction counts as correct if its IoU with truth ≥ 0.5.</p>
+<div class="card"><b>Why called that:</b> inherited from search engines + COCO challenge — AP summarizes the precision-vs-recall tradeoff, mean makes it fair across classes.<br><b>Why we use it:</b> one report-card grade to compare models. If IoU is the “ruler for one box”, mAP is the “final grade for the whole model”. You don’t need it until lesson 0005 — until then just read it as “grade”.</div>
+
+<h2>Quiz — same length answers, no tricks</h2>
+<div class="quiz" id="q1">
+<p><b>Q1: Half behind pillar, half visible?</b></p>
+<button data-c="w">A: Skip it, hidden means never label</button>
+<button data-c="c">B: Label it, mark occluded yes for review</button>
+<button data-c="w">C: Draw full imagined body beyond pillar</button>
+<p class="feedback" id="f1"></p>
+</div>
+<div class="quiz" id="q2">
+<p><b>Q2: Person cut by image right edge?</b></p>
+<button data-c="w">A: Extend box past edge to guess size</button>
+<button data-c="c">B: Box visible part, mark truncated yes here</button>
+<button data-c="w">C: Skip it, edge cases are never labeled</button>
+<p class="feedback" id="f2"></p>
+</div>
+<div class="quiz" id="q3">
+<p><b>Q3: Two boxes IoU zero point nine?</b></p>
+<button data-c="c">B: Strong overlap, annotators clearly agree here</button>
+<button data-c="w">A: Weak overlap, annotators clearly disagree here</button>
+<button data-c="w">C: Model grade is ninety percent accurate now</button>
+<p class="feedback" id="f3"></p>
+</div>
+
+<h2>Do this now (5 min, no install)</h2>
+<div class="task">1. Open any site photo (try <a href="https://universe.roboflow.com/">Roboflow Universe “hard hat”</a>).<br>2. Point: 1 tight box (air-free), 1 occluded, 1 truncated.<br>3. Say out loud: “occluded = hidden inside, truncated = cut by edge, IoU = overlap score”.<br>Done = ready for <a href="0001-ontology.html">0001</a>.</div>
+
+<p class="small">Primary source with pictures: <a href="https://opencv.github.io/cvat/docs/manual/advanced/shapes/">CVAT shapes guide</a>. Stuck? Ask agent: “show me occluded vs truncated on my image”.</p>
+<nav class="lesson-nav"><span class="disabled">← Start (0000)</span><a href="0001-ontology.html">Next: 0001 Ontology →</a></nav>
+</main>
+<script>
+document.querySelectorAll('.quiz').forEach(q=>{
+  const fb=q.querySelector('.feedback');
+  q.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    q.querySelectorAll('button').forEach(x=>x.classList.remove('correct','wrong'));
+    const ok=b.dataset.c==='c';
+    b.classList.add(ok?'correct':'wrong');
+    fb.textContent=ok?'Correct.':'Not quite — scroll to the picture above and retry.';
+  });
+});
+</script>
+</body></html>

@@ -1,0 +1,9 @@
+# YOLO data.yaml — point at your COCO-converted YOLO folders
+path: ../data/processed/yolo
+train: images/train
+val: images/val
+names:
+  0: person
+  1: helmet
+  2: safety-vest
+# Train on Colab T4: yolo train model=yolov8n.pt data=data.yaml epochs=50 imgsz=640

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0002 First 10 Boxes in CVAT</title>
+<link rel="stylesheet" href="../assets/style.css"></head>
+<body><div class="topnav">lesson 0002 · <a href="0001-ontology.html">← 0001</a> · <a href="../reference/glossary.html">glossary</a></div>
+<main>
+<h1>0002: Your first 10 boxes in CVAT (local Docker)</h1>
+<p><b>Win:</b> annotate 10 images locally, export COCO, open the JSON. 30 min.</p>
+<div class="card"><b>Jargon first:</b><br>• <b>CVAT — Computer Vision Annotation Tool. Stands for exactly that.</b> <b>Why called that:</b> built by Intel/OpenCV for vision labeling. <b>Why used:</b> free, handles images + video tracks + review mode in one UI. Label Studio is easier but weak on tracking.<br>• <b>Docker — stands for:</b> shipping-container metaphor for software. <b>Why called that:</b> packs app + deps into isolated “containers”. <b>Why used:</b> CVAT needs DB + backend + frontend — one <code>docker compose up</code> runs all, no manual install.<br>• <b>Project / Task / Job — stands for:</b> CVAT hierarchy. Project = ontology + many tasks. Task = chunk of data (e.g. 10 images). Job = your slice to annotate. <b>Why used:</b> lets many people split work without clobbering.<br>Docs: <a href="https://opencv.github.io/cvat/docs/getting_started/installation/">CVAT install</a>.</div>
+<h2>Steps</h2>
+<div class="task"><b>1. Run:</b><pre>cd cvat
+docker compose -f docker-compose.yml up -d
+# open http://localhost:8080 → create superuser → login</pre>
+If Docker is heavy, use <code>cvat.ai</code> cloud temporarily — same UI, export works identically.</div>
+<div class="task"><b>2. Create Project:</b> Name <code>ppe-safety</code> (PPE = Personal Protective Equipment, see <a href="../reference/glossary.html">glossary</a>) → Labels: <code>person, helmet, safety-vest</code> → Create Task: upload 10 images from <a href="https://universe.roboflow.com/">Roboflow Universe “hard hat”</a>.</div>
+<div class="task"><b>3. Annotate:</b> Press <code>N</code> to create box, drag tight, choose label. <code>Ctrl+S</code> saves. Follow your 5 rules from 0001. Time yourself.</div>
+<div class="task"><b>4. Export:</b> Menu → Export → COCO 1.0 → save to <code>data/processed/annotations.json</code>. <b>COCO — Common Objects in Context. Stands for</b> the photo dataset + JSON format. <b>Why called that:</b> photos show objects <i>in context</i> (kitchen, street), not isolated. <b>Why used:</b> standard <code>images / annotations / categories</code> structure every tool reads. Open it: find those 3 keys.</div>
+<h2>Quiz</h2>
+<div class="quiz" id="q">
+<p><b>Q: You export and bbox is [100,50,80,120]. What is it?</b></p>
+<button data-c="w">A: Two corners x1 y1 x2 y2 format box</button>
+<button data-c="c">B: COCO x-min y-min width height format</button>
+<button data-c="w">C: Normalized YOLO 0-1 format values set</button>
+<p class="feedback" id="f"></p>
+</div>
+<p class="small">Ask agent: “my export looks wrong, here’s the JSON”.</p>
+<nav class="lesson-nav"><a href="0001-ontology.html">← Prev: 0001 Ontology</a><a href="0003-coco-iou.html">Next: 0003 COCO+IoU →</a></nav>
+</main>
+<script>document.querySelectorAll('#q button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#q button').forEach(x=>x.classList.remove('correct','wrong'));b.classList.add(b.dataset.c==='c'?'correct':'wrong');document.getElementById('f').textContent=b.dataset.c==='c'?'Correct — COCO is x,y,w,h in pixels.':'No — COCO = x_min,y_min,width,height.';});</script>
+</body></html>

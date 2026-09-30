@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0003 COCO + IoU by Hand</title>
+<link rel="stylesheet" href="../assets/style.css"></head>
+<body><div class="topnav">lesson 0003 · <a href="0002-first-10-boxes-cvat.html">← 0002</a> · <a href="../reference/glossary.html">glossary</a></div>
+<main>
+<h1>0003: Read COCO + compute IoU by hand (once!)</h1>
+<p><b>Win:</b> you can hand-compute agreement. This unlocks all quality + mAP intuition.</p>
+<div class="card"><b>Jargon first:</b><br>• <b>COCO JSON — Common Objects in Context. Stands for</b> dataset + format with <code>images, annotations, categories</code>. <b>Why called that:</b> objects appear in everyday context. <b>Why used:</b> lingua franca — CVAT exports it, training + analysis read it.<br>• <b>bbox [x,y,w,h] — bounding box. Stands for</b> x-min, y-min (top-left corner in pixels), width, height. <b>Why this order:</b> COCO chose it; YOLO txt uses normalized center-x, center-y, w, h instead — different convention, same box. Don’t mix them.<br>• <b>category_id — stands for</b> number pointing to <code>categories</code> list (e.g. 1=helmet). <b>Why a number not a name:</b> compact + language-independent.<br>Formula: <code>IoU (Intersection over Union) = intersection / union</code> — see <a href="0000-visual-basics.html">0000 §4</a>. Example: Box A [0,0,10,10] (area 100), Box B [5,5,10,10] (area 100). Intersection = 5×5=25. Union = 100+100−25=175 (minus one copy of double-counted overlap). IoU = 25/175 ≈ <b>0.14</b> → no match.</div>
+<h2>Do in Python (5 min)</h2>
+<pre>python3 -c "
+def iou(a,b):
+    x1=max(a[0],b[0]); y1=max(a[1],b[1])
+    x2=min(a[0]+a[2],b[0]+b[2]); y2=min(a[1]+a[3],b[1]+b[3])
+    inter=max(0,x2-x1)*max(0,y2-y1)
+    union=a[2]*a[3]+b[2]*b[3]-inter
+    return inter/union if union else 0
+print(iou([0,0,10,10],[5,5,10,10]))  # 0.14
+print(iou([0,0,10,10],[1,1,10,10]))  # ~0.68 good
+"</pre>
+<div class="task">Now open your <code>data/processed/annotations.json</code> → count boxes per class:<pre>python3 -c "import json; d=json.load(open('data/processed/annotations.json')); from collections import Counter; print(Counter(a['category_id'] for a in d['annotations']))"</pre></div>
+<h2>Quiz</h2>
+<div class="quiz" id="q"><p><b>Q: IoU 0.82 between two annotators means:</b></p>
+<button data-c="w">A: Model mAP is eighty-two percent now</button>
+<button data-c="c">B: Strong human agreement, guideline works</button>
+<button data-c="w">C: Boxes are duplicates, delete one box</button>
+<p class="feedback" id="f"></p></div>
+<p class="small">Sources: <a href="https://cocodataset.org/#home">COCO</a>, <a href="https://docs.ultralytics.com/guides/yolo-performance-metrics/">Ultralytics metrics</a>. Next: 0004 quality/double-label (on request). Ask agent for any IoU confusion.</p>
+<nav class="lesson-nav"><a href="0002-first-10-boxes-cvat.html">← Prev: 0002 CVAT</a><span class="disabled">Next: 0004 (next) →</span></nav>
+</main>
+<script>document.querySelectorAll('#q button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#q button').forEach(x=>x.classList.remove('correct','wrong'));b.classList.add(b.dataset.c==='c'?'correct':'wrong');document.getElementById('f').textContent=b.dataset.c==='c'?'Correct — human agreement, not model score.':'No — IoU here = human agreement.';});</script>
+</body></html>
